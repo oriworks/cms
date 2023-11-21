@@ -1,0 +1,43 @@
+version: '3.7'
+
+services:
+    database:
+        container_name: cms-database
+        build: .docker/mysql
+        command: --innodb-use-native-aio=0
+        restart: always
+        tty: true
+        ports:
+            - "3306:3306"
+        volumes:
+            - ./database:/var/lib/mysql
+        networks:
+            - local
+        environment:
+            - MYSQL_DATABASE=cms
+            - MYSQL_ROOT_PASSWORD=root
+    website:
+        container_name: cms-website
+        build:
+            target: php-clean-installation
+            context: .
+            dockerfile: ./.docker/php/Dockerfile
+        ports:
+            - "8000:8000"
+        volumes:
+            - ./source/website:/var/www
+            - ~/.ssh:/root/.ssh
+            - ./.docker/php/php.ini:/usr/local/etc/php/php.ini
+        networks:
+            - proxy
+            - local
+        labels:
+            - "traefik.docker.network=traefik-proxy"
+            - "traefik.http.routers.website.rule=Host(`cms.local`)"
+
+networks:
+    proxy:
+        name: traefik-proxy
+        external: true
+    local:
+        driver: bridge

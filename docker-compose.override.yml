@@ -1,0 +1,36 @@
+services:
+    composer:
+        container_name: composer
+        build:
+            target: install
+            dockerfile: ./.docker/php/Dockerfile
+            context: .
+        tty: true
+        volumes:
+            - ./source/website:/var/www
+            - ~/.ssh:/root/.ssh
+        networks:
+            - local-network
+    phpmyadmin:
+        image: phpmyadmin
+        restart: always
+        ports:
+            - 8081:80
+        environment:
+            - PMA_HOST=cms-database
+            - PMA_PORT=3306
+            - PMA_USER=root
+            - PMA_PASSWORD=root
+        networks:
+            - proxy
+            - local
+        labels:
+            - "traefik.docker.network=traefik-proxy"
+            - "traefik.http.routers.phpmyadmin.rule=Host(`cms-sql.local`)"
+
+networks:
+    proxy:
+        name: traefik-proxy
+        external: true
+    local-network:
+        driver: bridge
