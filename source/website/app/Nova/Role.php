@@ -2,14 +2,13 @@
 
 namespace App\Nova;
 
-// use Illuminate\Http\Request;
-use Illuminate\Validation\Rules;
-use Laravel\Nova\Fields\Password;
+use Illuminate\Http\Request;
+use Laravel\Nova\Fields\Select;
 use Laravel\Nova\Fields\Text;
 use Laravel\Nova\Http\Requests\NovaRequest;
 use Oriworks\NovaPermissions\NovaPermissions;
 
-class User extends Resource
+class Role extends Resource
 {
     /**
      * The logical group associated with the resource.
@@ -21,9 +20,9 @@ class User extends Resource
     /**
      * The model the resource corresponds to.
      *
-     * @var class-string<\App\Models\User>
+     * @var class-string<\App\Models\Role>
      */
-    public static $model = \App\Models\User::class;
+    public static $model = \App\Models\Role::class;
 
     /**
      * The single value that should be used to represent the resource when being displayed.
@@ -38,7 +37,7 @@ class User extends Resource
      * @var array
      */
     public static $search = [
-        'name', 'email',
+        'name',
     ];
 
     /**
@@ -50,22 +49,18 @@ class User extends Resource
     public function fields(NovaRequest $request)
     {
         return [
-            Text::make('Name')
-                ->sortable()
-                ->rules('required', 'max:255'),
+            Text::make(__('Name'), 'name')
+                ->rules('required', 'string', 'max:255')
+                ->creationRules('unique:roles,name')
+                ->updateRules('unique:roles,name,{{resourceId}}'),
 
-            Text::make('Email')
-                ->sortable()
-                ->rules('required', 'email', 'max:254')
-                ->creationRules('unique:users,email')
-                ->updateRules('unique:users,email,{{resourceId}}'),
+            Select::make(__('Guard Name'), 'guard_name')
+                ->options(['web' => 'Web'])
+                ->rules('required')
+                ->default('web')
+                ->readonly(),
 
-            Password::make('Password')
-                ->onlyOnForms()
-                ->creationRules('required', Rules\Password::defaults())
-                ->updateRules('nullable', Rules\Password::defaults()),
-
-            NovaPermissions::make(__('Permissions'), 'allPermissions')
+            NovaPermissions::make(__('Permissions'), 'permissions')
                 ->options(\App\Models\Permission::all()
                     ->map(function ($permission) {
                         return [

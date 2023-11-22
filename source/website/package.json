@@ -3,7 +3,9 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "build": "vite build"
+        "build": "vite build",
+        "build-nova-permissions": "cd nova-components/NovaPermissions && npm run dev",
+        "build-nova-permissions-prod": "cd nova-components/NovaPermissions && npm run prod"
     },
     "devDependencies": {
         "axios": "^1.6.1",
